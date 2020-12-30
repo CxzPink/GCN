@@ -2,6 +2,7 @@ from __future__ import division
 from __future__ import print_function
 
 from utils import process
+from Model.models import GCN
 
 import time
 import argparse
@@ -10,8 +11,6 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 import torch.optim as optim
-
-from Model.models import GCN
 
 # Training settings
 parser = argparse.ArgumentParser()
@@ -30,6 +29,7 @@ torch.manual_seed(args.seed)
 if args.cuda:
     torch.cuda.manual_seed(args.seed)
 
+# Read dataset
 dataset = 'cora'
 adj, features, labels, idx_train, idx_val, idx_test = process.load_data(dataset)
 
@@ -63,7 +63,6 @@ def train(epoch):
           'acc_val: {:.4f}'.format(acc_val.item()),
           'time: {:.4f}s'.format(time.time() - t))
 
-
 def test():
     model.eval()
     output = model(features, adj)
@@ -72,7 +71,6 @@ def test():
     print("Test set results:",
           "loss= {:.4f}".format(loss_test.item()),
           "accuracy= {:.4f}".format(acc_test.item()))
-
 
 # Train model
 t_total = time.time()
