@@ -41,6 +41,13 @@ def load_data(dataset_str):
     idx_test = test_idx_range.tolist()
     idx_train = range(len(y))
     idx_val = range(len(y), len(y)+500)
+    
+    features, _ = preprocess_features(features)
+    adj = normalize_adj(adj + sp.eye(adj.shape[0]))
+
+    features = torch.FloatTensor(np.array(features))
+    labels = torch.LongTensor(np.where(labels)[1])
+    adj = sparse_mx_to_torch_sparse_tensor(adj)
 
     return adj, features, labels, idx_train, idx_val, idx_test
 
@@ -85,6 +92,21 @@ def sparse_to_tuple(sparse_mx, insert_batch=False):
         sparse_mx = to_tuple(sparse_mx)
 
     return sparse_mx
+
+def sparse_mx_to_torch_sparse_tensor(sparse_mx):
+    """Convert a scipy sparse matrix to a torch sparse tensor."""
+    sparse_mx = sparse_mx.tocoo().astype(np.float32)
+    indices = torch.from_numpy(
+        np.vstack((sparse_mx.row, sparse_mx.col)).astype(np.int64))
+    values = torch.from_numpy(sparse_mx.data)
+    shape = torch.Size(sparse_mx.shape)
+    return torch.sparse.FloatTensor(indices, values, shape)
+
+def accuracy(output, labels):
+    preds = output.max(1)[1].type_as(labels)
+    correct = preds.eq(labels).double()
+    correct = correct.sum()
+    return correct / len(labels)
 
 def plot_eigenvector(adj, size):
     adj_ = normalize_adj(adj + sp.eye(adj.shape[0]))
